@@ -3,9 +3,6 @@ import pyfits as pf
 import matplotlib.pyplot as plt
 plt.ion()
 
-#note: the functions each create an array, so if you want to run two functions you
-#need to re-run the code in between. Maybe try to fix this later by putting default 
-#parameter in function
 
 #open spectra and store the data and header in arrays in arrays
 iwavfile=pf.open('keck_iwav.fits')[0].data[0,500:850]
@@ -27,7 +24,7 @@ for x in spectra_full:
 	y=x[0]
 	spectra.append(y[500:850])
 	
-#normalize spectra
+#normalize spectra and store them into an array "norm"
 window=15
 def normalize(x,norm,med):
 	medianrange=[]
@@ -52,7 +49,6 @@ s1interp=np.interp(xvals,x,normalized_spectra[0])
 iwavfileinterp=np.interp(xvals,x,iwavfile)
 
 #define a shift function that plots shifted spectra and its difference spectrum
-
 shifted_spectra=[]
 def shift(s,store=False, plot=True,shifted_specs=shifted_spectra):
 	sinterp=np.interp(xvals,x,s)
@@ -80,15 +76,8 @@ def shift(s,store=False, plot=True,shifted_specs=shifted_spectra):
 	else:
 		None
 	
-	
-
-
-	
 #PLOT RMS VALUES
-RMS1=[]
-RMS2=[]
-RMS3=[]
-def calc_RMS():
+def calc_RMS(RMS1,RMS2,RMS3):
 	for j in normalized_spectra:
 		sinterp=np.interp(xvals,x,j)
 		chi=[]
@@ -108,27 +97,33 @@ def calc_RMS():
 		
 
 def plot_rms():
-	calc_RMS()
+	RMS11=[]
+	RMS21=[]
+	RMS31=[]
+	calc_RMS(RMS11, RMS21, RMS31)
 	specx=np.arange(1,len(spectra_full)+1,1)
-	plt.plot(specx,RMS1,'bo',label='section 1')
-	plt.plot(specx,RMS2,'go',label='section 2')
-	plt.plot(specx,RMS3,'ro',label='section 3')
+	plt.plot(specx,RMS11,'bo',label='section 1')
+	plt.plot(specx,RMS21,'go',label='section 2')
+	plt.plot(specx,RMS31,'ro',label='section 3')
 	plt.xlim(0,len(normalized_spectra)+1)
-	plt.ylim(0,0.03)
+	plt.ylim(0,0.05)
 	plt.title('Spectra RMS Values')
 	plt.xlabel('Spectrum Index')
 	plt.ylabel('RMS')
 	plt.legend()
 	
 #PLOT RMS AS FUNCTION OF PHASE	
-def plot_rmsphase():	
-	calc_RMS()
+def plot_rmsphase():
+	RMS12=[]
+	RMS22=[]
+	RMS32=[]	
+	calc_RMS(RMS12, RMS22, RMS32)
 	JD=[]
 	for x in spectra_headers:
 		JD.append(float(x[59])+2400000.5)
-	plt.plot(JD,RMS1,'bo',label='section 1')
-	plt.plot(JD,RMS2,'go',label='section 2')
-	plt.plot(JD,RMS3,'ro',label='section 3')
+	plt.plot(JD,RMS12,'bo',label='section 1')
+	plt.plot(JD,RMS22,'go',label='section 2')
+	plt.plot(JD,RMS32,'ro',label='section 3')
 	plt.title('RMS versus Julian Date')
 	plt.xlabel('Julian Date')
 	plt.ylabel('RMS')
@@ -204,8 +199,8 @@ def plot_averaged_spectra():
 	plt.subplot(211)
 	plt.plot(iwavfileinterp,in_avg,'g-',label='In Transit')
 	plt.plot(iwavfileinterp,out_avg,'b-',label='Out of Tranist')
-	plt.axvline(x=6562,color='black',linestyle='--')
-	plt.axvline(x=6564,color='black',linestyle='--')
+	plt.axvline(x=iwavfileinterp[1000],color='black',linestyle='--')
+	plt.axvline(x=iwavfileinterp[2000],color='black',linestyle='--')
 	plt.figtext(0.2, 0.75, 'section 1')
 	plt.figtext(0.45, 0.75, 'section 2')
 	plt.figtext(0.75, 0.75, 'section 3')
@@ -216,8 +211,8 @@ def plot_averaged_spectra():
 	plt.subplot(212)
 	plt.plot(iwavfileinterp,np.array(in_avg)-np.array(out_avg),'g-')
 	plt.plot(iwavfileinterp,np.array(out_avg)-np.array(out_avg),'b-')
-	plt.axvline(x=6562,color='black',linestyle='--')
-	plt.axvline(x=6564,color='black',linestyle='--')
+	plt.axvline(x=iwavfileinterp[1000],color='black',linestyle='--')
+	plt.axvline(x=iwavfileinterp[2000],color='black',linestyle='--')
 	plt.figtext(0.2, 0.35, 'section 1')
 	plt.figtext(0.45, 0.35, 'section 2')
 	plt.figtext(0.75, 0.35, 'section 3')
@@ -227,3 +222,4 @@ def plot_averaged_spectra():
 	plt.ylabel('Normalized Flux')
 	plt.title('Difference Spectra')
 	plt.legend()
+
