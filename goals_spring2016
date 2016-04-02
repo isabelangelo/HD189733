@@ -1,0 +1,34 @@
+3/29:
+Status Update: 
+to do:
+-ensure that varibale feature on the right of H-alpha is in section 2
+-create a table with the following columns: file name, index number, signal:noise, shift, orbital phase, rms (all 3) 
+-scale up to 100 data files
+-for S:N take section of spectrum away from H-alpha line, mulitply by 2 (CCD gain), take median of range(~500pixels) and take square 
+root
+*JD: use the ones from e-mail (11/13) unless they are the same as those in fits files, with conversion constant given
+-phase=(JD-Tt)/P, JD from email, Tt=midpoint, you will need to subtract constant (use mod function to calculate)<<test with JD=200,205,210,220
+
+plots: use rms sections 1 and 3, should be the same for all spectra
+-signal to noise versus JD and phase
+-shift versus JD and phase
+-rms 1 and 3 versus JD and phase
+^ 6 plots total
+-plot shift versus rms
+-spectral feature and difference spectra for all 100 spectra (test with different templates different in time)
+
+*-histogram of phases
+*-histogram of signal to noise ratio
+*save them all in screen captures, identify shifting/scaling edits needed 
+
+4/5:
+
+4/12:
+
+4/19:
+
+4/26:
+
+5/3:
+
+Goals
