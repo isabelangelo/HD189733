@@ -1,13 +1,9 @@
 import numpy as np
 import pyfits as pf
+from astropy import table
 import matplotlib.pyplot as plt
+from astropy.table import Table, Column
 plt.ion()
-
-#need to change the RMS boundaries
-#maybe calculate them after they are already shifted
-#try: in plot rms function, shift the spectra, with store=True, and then calculate the RMS
-#accordingly (iterate over shifted spectra)- use the s0,s1,s2 method so that it will depend 
-#on the spectrum we shift according to but can still be altered
 
 #open spectra and store the data and header in arrays in arrays
 iwavfile=pf.open('keck_iwav.fits')[0].data[0,500:850]
@@ -55,15 +51,17 @@ iwavfileinterp=np.interp(xvals,x,iwavfile)
 
 #define a shift function that plots shifted spectra and its difference spectrum
 shifted_spectra=[]
-def shift(s,store=False, plot=True,shifted_specs=shifted_spectra):
+shifts=[]
+def shift(s,store=False, plot=True,shifted_specs=shifted_spectra,store_shifts=False,shifts_array=shifts):
 	sinterp=np.interp(xvals,x,s)
 	chi=[]
 	for i in range(len(s1interp)):
 		n=np.roll(sinterp,i)
 		diff= s1interp-n
 		chi.append(np.sum(diff**2))
-	
 	p=np.where(chi==np.min(chi))[0]
+	if store_shifts==True:
+		shifts_array.append(p[0])
  	a=np.roll(sinterp,p)
  	if store == True:
  		shifted_specs.append(a)
@@ -165,7 +163,6 @@ def sort(spectrum):
 for spectrum in spectra_files:
 	sort(spectrum)
 
-#as of now it just plots all of them at once
 def plot_averaged_spectra():
 	specdata=[]
 	for x in in_transit_spectra:
@@ -205,33 +202,57 @@ def plot_averaged_spectra():
 	plt.subplot(211)
 	plt.plot(in_avg,'g-',label='In Transit')
 	plt.plot(out_avg,'b-',label='Out of Tranist')
-#	plt.axvline(x=iwavfileinterp[1000],color='black',linestyle='--')
-# 	plt.axvline(x=iwavfileinterp[1100],color='black',linestyle='--')
-# 	plt.axvline(x=iwavfileinterp[2150],color='black',linestyle='--')
-# 	plt.axvline(x=iwavfileinterp[2350],color='black',linestyle='--')
-	#plt.figtext(0.2, 0.75, 'section 1')
-	#plt.figtext(0.45, 0.75, 'section 2')
-	#plt.figtext(0.75, 0.75, 'section 3')
-	#plt.xlim(6560,6566)
 	plt.ylabel('Normalized Flux')
 	plt.title('Averaged Spectra')
 	
 	plt.subplot(212)
 	plt.plot(np.array(in_avg)-np.array(out_avg),'g-')
 	plt.plot(np.array(out_avg)-np.array(out_avg),'b-')
-	# plt.axvline(x=iwavfileinterp[1000],color='black',linestyle='--')
-# 	plt.axvline(x=iwavfileinterp[1100],color='black',linestyle='--')
-# 	plt.axvline(x=iwavfileinterp[2150],color='black',linestyle='--')
-# 	plt.axvline(x=iwavfileinterp[2350],color='black',linestyle='--')
-	#plt.figtext(0.2, 0.35, 'section 1')
-	#plt.figtext(0.45, 0.35, 'section 2')
-	#plt.figtext(0.75, 0.35, 'section 3')
-	#plt.xlim(6560,6566)
 	plt.ylim(-0.1,0.1)
 	plt.xlabel('Wavelength')
 	plt.ylabel('Normalized Flux')
 	plt.title('Difference Spectra')
 	plt.legend()
+	
+def plot_table():
+	#create an array SN that calculates s:n for each spectrum
+	normspecshift=[]
+	medspecshift=[]
+	for s in spectra:
+		normalize(s,normspecshift,medspecshift)
+	#create an array shiftsarray of shifts for each spectra- i.e. pixel shift of 
+	#interpolated spectrum
+	shiftsarray=[]
+	shifted_tablespecs=[]
+	for n in normspecshift:
+		shift(n,store=True, plot=False,shifted_specs=shifted_tablespecs,store_shifts=True,shifts_array=shiftsarray)
+	SN=[]
+	for spec in shifted_tablespecs:
+		min=np.where(spec==np.min(spec))[0]
+		sn1=[]
+		sn1.append(spec[min-1000:min-500])
+		sn1.append(spec[min+1000:min+1500])
+		sn=np.array(sn1).ravel()
+		SN.append((np.median(2*sn)**(1/2.)))
+	#create an array of orbital phases
+	phase=[]
+	for spec in spectra_headers:
+		JD=float(spec[59])+2.44*10**6
+		phase.append(((JD-MP)%P)/P)
+	#create arrays for RMS for sections 1,2, and 3
+	RMS1tab=[]
+	RMS2tab=[]
+	RMS3tab=[]
+	calc_RMS(RMS1tab,RMS2tab,RMS3tab)
+	#plot arrays in a table
+	t = Table([spectra_filenames,np.arange(0,len(spectra),1),SN,shiftsarray,phase,RMS1tab,
+	RMS2tab,RMS3tab],names=('File Name', 'Spectrum Index', 'S:N','Pixel Shift','Phase',
+	'RMS1','RMS2','RMS3'))
+	t.show_in_browser(jsviewer=True)
+	
+	
+		
+		
 	
 	
 	
