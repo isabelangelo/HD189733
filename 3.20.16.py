@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from astropy.table import Table, Column
 plt.ion()
 
-#open spectra and store the data and header in arrays in arrays
+#open spectra and store the data and header in arrays
 iwavfile=pf.open('keck_iwav.fits')[0].data[0,500:850]
 spectra_filenames=[]
 with open('spectra.txt') as text:
@@ -216,16 +216,11 @@ def plot_averaged_spectra():
 	
 def plot_table():
 	#create an array SN that calculates s:n for each spectrum
-	normspecshift=[]
-	medspecshift=[]
-	for s in spectra:
-		normalize(s,normspecshift,medspecshift)
-	#create an array shiftsarray of shifts for each spectra- i.e. pixel shift of 
-	#interpolated spectrum
-	shiftsarray=[]
+	shiftsarray1=[]
 	shifted_tablespecs=[]
-	for n in normspecshift:
-		shift(n,store=True, plot=False,shifted_specs=shifted_tablespecs,store_shifts=True,shifts_array=shiftsarray)
+	for n in spectra:
+		shift(n,store=True, plot=False,shifted_specs=shifted_tablespecs,store_shifts=True,shifts_array=shiftsarray1)
+	shiftsarray=np.array(shiftsarray1)/10.0
 	SN=[]
 	for spec in shifted_tablespecs:
 		min=np.where(spec==np.min(spec))[0]
@@ -246,7 +241,7 @@ def plot_table():
 	calc_RMS(RMS1tab,RMS2tab,RMS3tab)
 	#plot arrays in a table
 	t = Table([spectra_filenames,np.arange(0,len(spectra),1),SN,shiftsarray,phase,RMS1tab,
-	RMS2tab,RMS3tab],names=('File Name', 'Spectrum Index', 'S:N','Pixel Shift','Phase',
+	RMS2tab,RMS3tab],names=('File Name', 'Spectrum Index', 'S:N','Interpolated Pixel Shift','Phase',
 	'RMS1','RMS2','RMS3'))
 	t.show_in_browser(jsviewer=True)
 	
