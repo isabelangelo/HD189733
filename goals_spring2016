@@ -22,6 +22,10 @@ plots: use rms sections 1 and 3, should be the same for all spectra
 *save them all in screen captures, identify shifting/scaling edits needed 
 
 4/5:
+-plot each spectrum one-by-one next to calculated pixel shift to make sure the shift works
+-fix normalization on strange ones
+-get rid of rollover on the sides of each spectrum (want the section 1 and 3 RMS plots to be even)
+-change phase bin size to have more phases, should see flatter distribution
 
 4/12:
 
