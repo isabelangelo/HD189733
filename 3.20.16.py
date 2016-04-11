@@ -8,7 +8,7 @@ plt.ion()
 #open spectra and store the data and header in arrays
 iwavfile=pf.open('keck_iwav.fits')[0].data[0,500:850]
 spectra_filenames=[]
-with open('spectra.txt') as text:
+with open('spectra2.txt') as text:
 	for line in text:
 		spectra_filenames.append(line)
 
@@ -26,17 +26,18 @@ for x in spectra_full:
 	spectra.append(y[500:850])
 	
 #normalize spectra and store them into an array "norm"
-window=15
-def normalize(x,norm,med):
-	medianrange=[]
+def normalize(x,norm,meanarray,plot=False,window=30):
+	meanrange=[]
 	p=np.where(x==np.min(x))
 	for i in range(len(x)):
 		if i < (p[0]-window) or i > (p[0]+window):
-			medianrange.append(x[i])
-	median=np.median(medianrange)
-	med.append(median)
-	normspec=x*(1-((median-spectra_medians[0])/spectra_medians[0]))/spectra_medians[0]
+			meanrange.append(x[i])
+	mean=np.mean(meanrange)
+	meanarray.append(mean)
+	normspec=x/mean
 	norm.append(normspec)
+	if plot==True:
+		plt.plot(normspec)
 	
 spectra_medians=[]
 normalized_spectra=[]
@@ -52,7 +53,8 @@ iwavfileinterp=np.interp(xvals,x,iwavfile)
 #define a shift function that plots shifted spectra and its difference spectrum
 shifted_spectra=[]
 shifts=[]
-def shift(s,store=False, plot=True,shifted_specs=shifted_spectra,store_shifts=False,shifts_array=shifts):
+RMS=[]
+def shift(s,store=False, plot=True,shifted_specs=shifted_spectra,store_shifts=False,shifts_array=shifts,RMS=RMS):
 	sinterp=np.interp(xvals,x,s)
 	chi=[]
 	for i in range(len(s1interp)):
