@@ -7,7 +7,7 @@ plt.ion()
 #open spectra and store the data and header in arrays
 iwavfile=pf.open('keck_iwav.fits')[0].data[0,500:850]
 spectra_filenames=[]
-with open('spectra1.txt') as text:
+with open('spectra2.txt') as text:
 	for line in text:
 		spectra_filenames.append(line)
 
@@ -25,16 +25,18 @@ for x in spectra_full:
 	spectra.append(y[500:850])
 	
 #define function to normalize spectra
-def normalize(x,norm,med,window=15):
-	medianrange=[]
+def normalize(x,norm,meanarray,plot=False,window=30):
+	meanrange=[]
 	p=np.where(x==np.min(x))
 	for i in range(len(x)):
 		if i < (p[0]-window) or i > (p[0]+window):
-			medianrange.append(x[i])
-	median=np.median(medianrange)
-	med.append(median)
-	normspec=x*(1-((median-spectra_medians[0])/spectra_medians[0]))/spectra_medians[0]
+			meanrange.append(x[i])
+	mean=np.mean(meanrange)
+	meanarray.append(mean)
+	normspec=x/mean
 	norm.append(normspec)
+	if plot==True:
+		plt.plot(normspec)
 
 spectra_medians=[]
 normalized_spectra=[]
@@ -51,7 +53,7 @@ iwavfileinterp=np.interp(xvals,x,iwavfile)
 shifted_spectra=[]
 shifts=[]
 def shift(s,store=False, plot=True,shifted_specs=shifted_spectra,store_shifts=False,
-shifts_array=shifts):
+shifts_array=shifts,plotreg=False):
 	sinterp=np.interp(xvals,x,s)
 	chi=[]
 	for i in range(len(s1interp)):
@@ -69,21 +71,32 @@ shifts_array=shifts):
 	if plot == True:
 		s1=np.where(s1interp==np.min(s1interp))[0]-500
 		s2=np.where(s1interp==np.min(s1interp))[0]+1000
+		p1=iwavfileinterp[s1]
+		p2=iwavfileinterp[s2]
 		plt.subplot(211)
-		plt.plot(a)
-		plt.axvline(x=s1,linestyle='--',color='black')	
-		plt.axvline(x=s2,linestyle='--',color='black')
+		plt.plot(iwavfileinterp,a)
+		plt.axvline(x=p1,linestyle='--',color='black')	
+		plt.axvline(x=p2,linestyle='--',color='black')
 		plt.title('Spectra')
 		plt.ylabel('Normalized Flux')
+		plt.axvline(x=iwavfileinterp[200],linestyle='--',color='black')
+		plt.axvline(x=iwavfileinterp[3300],linestyle='--',color='black')
+		
 		plt.subplot(212)
 		diff=a-s1interp
-		plt.plot(diff)
-		plt.axvline(x=s1,linestyle='--',color='black')	
-		plt.axvline(x=s2,linestyle='--',color='black')
+		plt.plot(iwavfileinterp,diff)
+		#plt.axvline(x=s1,linestyle='--',color='black')	
+		#plt.axvline(x=s2,linestyle='--',color='black')
 		plt.ylim(-0.05,0.05)
 		plt.title('Difference Spectra')
+		plt.axvline(x=p1,linestyle='--',color='black')	
+		plt.axvline(x=p2,linestyle='--',color='black')
+		plt.axvline(x=iwavfileinterp[200],linestyle='--',color='black')
+		plt.axvline(x=iwavfileinterp[3300],linestyle='--',color='black')
 	else:
 		None
+	if plotreg==True:
+		plt.plot(iwavfile,s)
 		
 #define a function to calculate RMS values
 def calc_RMS(RMS1,RMS2,RMS3):
@@ -98,9 +111,9 @@ def calc_RMS(RMS1,RMS2,RMS3):
  		a=np.roll(sinterp,p)
  		diff=a-s1interp
  		point=np.where(s1interp==np.min(s1interp))[0]
- 		rms1=(np.mean(diff[point-1000:point-500]**2))**(1/2.)
+ 		rms1=(np.mean(diff[point-800:point-500]**2))**(1/2.)
 		rms2=(np.mean(diff[point-500:point+1000]**2))**(1/2.)
-		rms3=(np.mean(diff[point+1000:point+1500]**2))**(1/2.)
+		rms3=(np.mean(diff[point+1000:point+1300]**2))**(1/2.)
 		RMS1.append(rms1)
 		RMS2.append(rms2)
 		RMS3.append(rms3)
@@ -175,7 +188,7 @@ def diagnostic_plot():
 def histogram_plot():
 	plt.title('Diagnostic Histograms')
 	plt.subplot(121)
-	plt.hist(phase)
+	plt.hist(phase,bins=np.linspace(0,1,50))
 	plt.title('Phase')
 	plt.ylabel('Frequency')
 	plt.subplot(122)
@@ -198,6 +211,7 @@ def plot_spectra():
 	for spec in normalized_spectra:
 		shift(spec,store=False, plot=True,shifted_specs=shifted_specs_plot,store_shifts=False,
 		shifts_array=shifts_array_plot)
+
 
 
 
