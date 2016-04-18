@@ -48,6 +48,9 @@ indicate no in template file
 
 (6) rms improvements : 1. increase wavelength range for entire spectrum, 2. normalize according to line connecting section 1 and 3 media
 (overplot line) 3. higher interpolated shift
+update: 1. theoretically should not help with rms calculations because rollover must be cut off in same place regardless of 
+  original array size
+  3. will run interpolated shift over night
 
 (7) all iodine spectra 
 
