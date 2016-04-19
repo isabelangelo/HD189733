@@ -29,6 +29,31 @@ lines where you cut them off
 -change phase bin size to have more phases, should see flatter distribution
 
 4/12:
+(1)phase histogram peak at 0.5
+timestamp=2.44e6 days + JD from column of text file; should be consistent
+-add to histogram vertical dotted line at ingress and egress, MP should be connsistent with file dates
+-label x axis, number on y axis on everything
+
+(2) shift plot: make the right shifts negative
+-make sure labels are on y axis
+
+(3) iodine spectra: plot them, see if we can observe by eye any similar features around h alpha wavelengths
+-check template observation to see if it has iodine- open header of fits file, look at iodine column (i2), should 
+indicate no in template file
+-overplot iodine in and iodine out (both out of transit), check for features that we see in spectra plot
+
+(4) lamp file: plot same order/section to check for iodine features
+
+(5) print in rms plot blue and red median rms value ***before you make any edits***
+
+(6) rms improvements : 1. increase wavelength range for entire spectrum, 2. normalize according to line connecting section 1 and 3 media
+(overplot line) 3. higher interpolated shift
+update: 1. theoretically should not help with rms calculations because rollover must be cut off in same place regardless of 
+  original array size
+  3. will run interpolated shift over night
+
+(7) all iodine spectra 
+
 
 4/19:
 
