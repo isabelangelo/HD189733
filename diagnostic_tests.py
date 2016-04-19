@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 plt.ion()
 
 #open spectra and store the data and header in arrays
+iwavfile_full=pf.open('keck_iwav.fits')[0].data[0]
 iwavfile=pf.open('keck_iwav.fits')[0].data[0,500:850]
 spectra_filenames=[]
 with open('spectra2.txt') as text:
@@ -21,7 +22,11 @@ for name in spectra_filenames:
 	
 spectra=[]
 for x in spectra_full:
-	y=x[0]
+ 	a,b,c=np.polyfit(iwavfile_full,x[0],2)
+ 	quadratic_fit=[]
+ 	for i in iwavfile_full:
+ 		quadratic_fit.append(a*i**2+b*i+c)
+	y=x[0]/quadratic_fit
 	spectra.append(y[500:850])
 	
 #define function to normalize spectra
@@ -62,7 +67,10 @@ shifts_array=shifts,plotreg=False):
 		chi.append(np.sum(diff**2))
 	p=np.where(chi==np.min(chi))[0]
 	if store_shifts==True:
-		shifts_array.append(p[0])
+		if p<(len(s1interp)/2.):
+			shifts_array.append(p[0])
+		if p>(len(s1interp)/2.):
+			shifts_array.append(-1*(len(s1interp)/2.))
  	a=np.roll(sinterp,p)
  	if store == True:
  		shifted_specs.append(a)
@@ -128,9 +136,9 @@ MP=2453955.5255511
 JD=[]
 phase=[]
 for spec in spectra_headers:
-	jd=float(spec[59])+2.44*10**6
+	jd=float(spec[59])+2400000.5
 	JD.append(jd)
-	phase.append(((jd-MP)%P)/P)
+	phase.append(((jd-(MP-P/2.))%P)/P)
 
 #store signal:noise in array
 shiftsarray1=[]
@@ -153,48 +161,67 @@ rms1=[]
 rms2=[]
 rms3=[]
 calc_RMS(rms1,rms2,rms3)
+rms1med=str(np.around(np.median(rms1),decimals=4))
+rms3med=str(np.around(np.median(rms3),decimals=4))
 
 #make plots :)
+def rms_plot():
+	plt.title('RMS for Spectrum Sections 1 and 3')	
+	plt.plot(phase,rms1,'bo',label='section 1'+' median='+rms1med)
+	plt.plot(phase,rms3,'ro',label='section 3'+' median='+rms3med)
+	plt.xlabel('phase')
+	plt.ylabel('Section RMS')
+	plt.legend()
+	plt.legend(bbox_to_anchor=(1.0,1.09))
+	
 def diagnostic_plot():
+	plt.suptitle('Diagnostic Plots')
 	plt.title('Spectra Diagnostic Plots')
 	plt.subplot(231)
 	plt.plot(JD,SN,'*')
 	plt.xlabel('JD')
-	plt.title('S:N')
+	plt.ylabel('S:N')
 	plt.subplot(232)
 	plt.plot(JD,shiftsarray,'*')
 	plt.xlabel('JD')
-	plt.title('Pixel Shift')
+	plt.ylabel('Pixel Shift')
 	plt.subplot(233)
 	plt.plot(JD,rms1,'bo',label='section 1')
 	plt.plot(JD,rms3,'ro',label='section 3')
-	plt.title('Section RMS')
+	plt.ylabel('Section RMS')
 	plt.xlabel('JD')
 	plt.legend()
 	plt.legend(bbox_to_anchor=(1.05,1.05))
 	plt.subplot(234)
 	plt.plot(phase,SN,'*')
+	plt.ylabel('S:N')
 	plt.xlabel('phase')
 	plt.subplot(235)
 	plt.plot(phase,shiftsarray,'*')
+	plt.ylabel('Pixel Shift')
 	plt.xlabel('phase')
 	plt.subplot(236)	
 	plt.plot(phase,rms1,'bo',label='section 1')
 	plt.plot(phase,rms3,'ro',label='section 3')
 	plt.xlabel('phase')
+	plt.ylabel('Section RMS')
 	plt.legend()
 	plt.legend(bbox_to_anchor=(1.15,1.15))
 	
 def histogram_plot():
-	plt.title('Diagnostic Histograms')
 	plt.subplot(121)
-	plt.hist(phase,bins=np.linspace(0,1,50))
-	plt.title('Phase')
-	plt.ylabel('Frequency')
+	ingress=(((MP-Tdur)-(MP-P/2.))%P)/P
+	egress=(((MP+Tdur)-(MP-P/2.))%P)/P
+	plt.axvspan(ingress,egress,color='red',alpha=0.4,hatch='xxx')
+	plt.hist(phase,bins=np.linspace(0,1,50),alpha=0.5)
+	plt.title('Orbital Phase Distribution')
+	plt.xlabel('phase')
+	plt.ylabel('Spectra')
 	plt.subplot(122)
-	plt.hist(SN)
-	plt.title('S:N')
-	plt.ylabel('Frequency')
+	plt.hist(SN,alpha=0.5)
+	plt.title('S:N Distribution')
+	plt.xlabel('S:N')
+	plt.ylabel('Spectra')
 	
 def shift_plot():
 	plt.plot(shiftsarray,rms1,'bo',label='section 1')
