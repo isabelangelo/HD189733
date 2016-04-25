@@ -56,11 +56,13 @@ update: 1. theoretically should not help with rms calculations because rollover 
 
 
 4/19:
--check shifts by printin shift on screen and changing template to one with phase=0.5 (shifts should be grouped near 0)
+-check shifts by printing shift on screen and changing template to one with phase=0.5 (shifts should be grouped near 0)
 -check for iodine features: (1) fit 5th order blaze function to quartz lamp spectrum, divide and look for iodine features by eye
 (2) plot offset iodine and no iodine star spectra from star data set 
 
 (3)^^ after blaze function is fized with entire order, also divide by a line connecting two points of clipped spectra
+
+(4) investigate possible absorption features from Earth's atmosphere
 
 4/26:
 
